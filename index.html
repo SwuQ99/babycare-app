@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f766e"><title>BabyCare | Demo Postnatal</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f0fdfa;color:#183b38;font:15px system-ui,-apple-system,sans-serif}header{background:#0f766e;color:white;padding:23px 18px 18px}h1{margin:3px 0;font-size:27px}h2{font-size:18px;margin:18px 0 10px}small,.muted{color:#64748b}.wrap{max-width:600px;margin:auto;padding:14px}.card{background:white;border:1px solid #d1e7e3;border-radius:16px;padding:15px;margin:10px 0;box-shadow:0 2px 8px #0f766e08}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stats .card{margin:0;padding:12px}.num{font-size:26px;font-weight:750}select,input,textarea{width:100%;padding:12px;border:1px solid #bfd7d2;border-radius:10px;background:white;color:#183b38;font:inherit;margin-top:6px}label{display:block;margin:12px 0}button{border:0;background:#0f766e;color:white;padding:12px 15px;border-radius:11px;font:inherit;font-weight:650;cursor:pointer}button.secondary{background:#e3f4f0;color:#0f766e}nav{display:flex;gap:6px;overflow-x:auto;margin:14px 0}nav button{white-space:nowrap;background:#d8eee8;color:#0f766e}nav button.active{background:#0f766e;color:white}.pill{border-radius:50px;padding:5px 9px;background:#fef3c7;color:#92400e;font-size:12px}.pill.done{background:#ccfbf1;color:#115e59}.note{font-size:12px;line-height:1.5}.error{color:#b91c1c}.hidden{display:none}
+</style></head><body>
+<header><div style="max-width:600px;margin:auto"><div style="font-size:12px;opacity:.85">PUSAT PENJAGAAN POSTNATAL · PROTOTAIP</div><h1>✿ BabyCare</h1><div style="opacity:.9">Penjagaan bayi dengan lebih teratur</div></div></header>
+<main class="wrap"><div class="card"><label for="role" style="margin:0">Lihat sebagai<select id="role"><option value="manager">👩‍💼 Pengurus</option><option value="staff">👩‍⚕️ Kakitangan</option><option value="mother">👩 Ibu Bayi (Baby Aisyah)</option></select></label></div><nav id="tabs"></nav><div id="view"></div><div class="card note"><b>Demo sahaja.</b> Semua nama dan data adalah rekaan. Tiada log masuk, pangkalan data atau kawalan akses sebenar. Jangan gunakan untuk maklumat bayi sebenar atau keputusan klinikal.<p><button id="reset" class="secondary" type="button">↺ Tetapkan semula demo</button></p></div></main>
+<script>
+(()=>{
+'use strict';
+const babies=[{id:1,name:'Baby Aisyah',age:'8 hari',room:'Melur',mother:'Puan Nurul'},{id:2,name:'Baby Adam',age:'5 hari',room:'Melur',mother:'Puan Farah'},{id:3,name:'Baby Sofia',age:'12 hari',room:'Mawar',mother:'Puan Nadia'}];
+const initial=[{id:1,baby:1,type:'Susu',time:'08:00',detail:'60 ml susu ibu',done:true},{id:2,baby:1,type:'Lampin',time:'09:15',detail:'Lampin basah',done:true},{id:3,baby:2,type:'Susu',time:'10:00',detail:'',done:false},{id:4,baby:1,type:'Susu',time:'11:00',detail:'',done:false},{id:5,baby:3,type:'Tidur',time:'11:30',detail:'',done:false},{id:6,baby:2,type:'Lampin',time:'12:00',detail:'',done:false}];
+let records=initial.map(x=>({...x})),role='manager',tab='home',next=7;
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;':'&quot;',"'":'&#39;'}[c]));
+const b=id=>babies.find(x=>x.id===Number(id));
+const emoji=t=>({Susu:'🍼',Lampin:'🧷',Tidur:'🌙',Mandi:'🛁',Pemerhatian:'🩺'})[t]||'📝';
+const item=x=>`<article class="card"><div class="row"><div><b>${emoji(x.type)} ${esc(x.type)} · ${esc(x.time)}</b><div class="muted">${esc(b(x.baby).name)} · Bilik ${esc(b(x.baby).room)}</div></div><span class="pill ${x.done?'done':''}">${x.done?'✓ Selesai':'◷ Menunggu'}</span></div>${x.done?`<p>${esc(x.detail)}</p>`:''}${role==='staff'&&!x.done&&b(x.baby).room==='Melur'?`<p><button data-complete="${x.id}">Rekod aktiviti</button></p>`:''}</article>`;
+const stat=(label,n)=>`<div class="card"><div class="muted">${label}</div><div class="num">${n}</div></div>`;
+const tabs=()=>role==='manager'?[['home','Ringkasan'],['babies','Senarai bayi'],['schedule','Jadual']]:role==='staff'?[['home','Tugasan'],['add','Rekod baru'],['history','Sejarah']]:[['home','Bayi saya'],['history','Sejarah'],['notices','Notifikasi']];
+function render(){
+const options=tabs();if(!options.some(x=>x[0]===tab))tab='home';
+$('#tabs').innerHTML=options.map(([k,v])=>`<button type="button" data-tab="${k}" class="${tab===k?'active':''}">${v}</button>`).join('');
+const done=records.filter(x=>x.done),pending=records.filter(x=>!x.done);
+let h='';
+if(role==='manager'){
+ if(tab==='home')h=`<h2>Ringkasan pusat</h2><div class="stats">${stat('Bayi',3)}${stat('Selesai',done.length)}${stat('Menunggu',pending.length)}</div><h2>Aktiviti menunggu</h2>${pending.map(item).join('')||'<div class="card">Semua aktiviti selesai.</div>'}`;
+ if(tab==='babies')h=`<h2>Senarai bayi</h2>${babies.map(x=>`<div class="card"><b>👶 ${esc(x.name)}</b><p>${esc(x.age)} · Bilik ${esc(x.room)}<br>Ibu: ${esc(x.mother)}</p></div>`).join('')}`;
+ if(tab==='schedule')h=`<h2>Jadual penjagaan</h2>${records.slice().sort((a,b)=>a.time.localeCompare(b.time)).map(item).join('')}`;
+}else if(role==='staff'){
+ if(tab==='home')h=`<h2>Tugasan · Bilik Melur</h2><div class="stats">${stat('Menunggu',pending.filter(x=>b(x.baby).room==='Melur').length)}${stat('Selesai',done.length)}${stat('Bayi',2)}</div>${pending.filter(x=>b(x.baby).room==='Melur').map(item).join('')||'<div class="card">Tiada tugasan menunggu.</div>'}`;
+ if(tab==='add')h=`<h2>Rekod penjagaan baru</h2><form id="recordForm" class="card"><label>Bayi<select name="baby"><option value="1">Baby Aisyah</option><option value="2">Baby Adam</option></select></label><label>Aktiviti<select name="type"><option>Susu</option><option>Lampin</option><option>Tidur</option><option>Mandi</option><option>Pemerhatian</option></select></label><label>Butiran<textarea name="detail" required maxlength="250" rows="3" placeholder="Contoh: 60 ml susu ibu"></textarea></label><button type="submit">Simpan rekod demo</button></form>`;
+ if(tab==='history')h=`<h2>Sejarah aktiviti</h2>${done.slice().reverse().map(item).join('')}`;
+}else{
+ const mine=records.filter(x=>x.baby===1),md=mine.filter(x=>x.done);
+ if(tab==='home')h=`<h2>👶 Baby Aisyah</h2><div class="card">8 hari · Bilik Melur<br>Ibu: Puan Nurul</div><div class="stats">${stat('Selesai',md.length)}${stat('Menunggu',mine.length-md.length)}${stat('Bilik','Melur')}</div><h2>Aktiviti terkini</h2>${md.slice().reverse().map(item).join('')}`;
+ if(tab==='history')h=`<h2>Sejarah Baby Aisyah</h2>${md.slice().reverse().map(item).join('')}`;
+ if(tab==='notices')h=`<h2>Notifikasi demo</h2>${md.slice().reverse().map(x=>`<div class="card">${emoji(x.type)} Aktiviti ${esc(x.type)} direkodkan pada ${esc(x.time)}.</div>`).join('')}<p class="note">Ini paparan contoh, bukan notifikasi push sebenar.</p>`;
+}
+$('#view').innerHTML=h;
+}
+$('#role').addEventListener('change',e=>{role=e.target.value;tab='home';render()});
+$('#tabs').addEventListener('click',e=>{const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;render()}});
+$('#view').addEventListener('click',e=>{const btn=e.target.closest('[data-complete]');if(!btn)return;const r=records.find(x=>x.id===Number(btn.dataset.complete));if(!r||r.done)return;const detail=prompt('Masukkan butiran '+r.type+':',r.type==='Susu'?'60 ml susu ibu':'Aktiviti selesai');if(detail===null)return;if(!detail.trim()){alert('Sila masukkan butiran.');return;}r.done=true;r.detail=detail.trim().slice(0,250);render();alert('Rekod demo berjaya disimpan. Cuba lihat paparan Ibu.')});
+$('#view').addEventListener('submit',e=>{if(e.target.id!=='recordForm')return;e.preventDefault();const f=new FormData(e.target),detail=String(f.get('detail')||'').trim();if(!detail)return;records.unshift({id:next++,baby:Number(f.get('baby')),type:String(f.get('type')),time:new Date().toLocaleTimeString('ms-MY',{hour:'2-digit',minute:'2-digit',hour12:false}),detail,done:true});tab='home';render();alert('Rekod demo berjaya disimpan.')});
+$('#reset').addEventListener('click',()=>{records=initial.map(x=>({...x}));next=7;tab='home';render()});
+render();
+})();
+</script></body></html>
